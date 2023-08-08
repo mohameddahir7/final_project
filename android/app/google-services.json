@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "956700236292",
+    "project_id": "virtual-scanning",
+    "storage_bucket": "virtual-scanning.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:956700236292:android:142468dd58941b918bb351",
+        "android_client_info": {
+          "package_name": "com.example.vistual_scanning"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "956700236292-m5pprjpngrocejtne48915auo3dd1kc6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6rJMy774TT8wM242-VX4FhvkiWgUvkLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "956700236292-m5pprjpngrocejtne48915auo3dd1kc6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
