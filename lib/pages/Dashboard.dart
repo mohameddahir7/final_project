@@ -1,4 +1,3 @@
-
 // import 'package:flutter/material.dart';
 // import '../Utils/app_colors.dart';
 // import '../Utils/app_utils.dart';
@@ -149,21 +148,23 @@
 //   }
 // }
 
-
-
 // Fisrt
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:lecle_downloads_path_provider/lecle_downloads_path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import '../Utils/app_colors.dart';
 import '../Utils/app_utils.dart';
 import 'package:share/share.dart';
-
 
 class Document {
   final String name;
@@ -199,7 +200,6 @@ class _DashboardPageState extends State<DashboardPage> {
     loadDocuments();
   }
 
-
   void favoriteDocument(Document document) {
     setState(() {
       document.isFavorite = !document.isFavorite;
@@ -220,15 +220,12 @@ class _DashboardPageState extends State<DashboardPage> {
         .doc(user.uid)
         .collection('files')
         .doc(document.name)
-        .update({'isFavorite': document.isFavorite})
-        .then((value) {
+        .update({'isFavorite': document.isFavorite}).then((value) {
       print('Favorite status updated successfully.');
     }).catchError((error) {
       print('Failed to update favorite status: $error');
     });
   }
-
-  
 
   void loadDocuments() async {
     FirebaseAuth auth = FirebaseAuth.instance;
@@ -257,52 +254,50 @@ class _DashboardPageState extends State<DashboardPage> {
       filteredDocuments = List.from(documents);
     });
   }
-   
-  
 
   Future<void> shareDocument(Document document) async {
-  if (document.url.isNotEmpty) {
-    try {
-      // Get the file path of the document
-      String filePath = await _getFilePath(document.url);
+    if (document.url.isNotEmpty) {
+      try {
+        // Get the file path of the document
+        String filePath = await _getFilePath(document.url);
 
-      // Share the file
-      List<String> filePaths = [filePath];
-      await Share.shareFiles(filePaths);
-    } catch (error) {
+        // Share the file
+        List<String> filePaths = [filePath];
+        await Share.shareFiles(filePaths);
+      } catch (error) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: const Text('Failed to share the document.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        print('Failed to share document: $error');
+      }
+    } else {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Error'),
-            content: const Text('Failed to share the document.'),
+            content: const Text(
+              'Cannot share a document that is not uploaded to the cloud.',
+            ),
             actions: <Widget>[
               TextButton(
                 child: const Text('OK'),
                 onPressed: () {
                   Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-      print('Failed to share document: $error');
-    }
-  } else {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: const Text(
-            'Cannot share a document that is not uploaded to the cloud.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
                 },
               ),
             ],
@@ -313,119 +308,92 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<String> _getFilePath(String url) async {
-  final storageReference = FirebaseStorage.instance.ref().child(url);
+    final storageReference = FirebaseStorage.instance.ref().child(url);
 
-  final Directory tempDir = await getTemporaryDirectory();
-  final File tempFile = File('${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}');
-  
-  try {
-    await storageReference.writeToFile(tempFile);
-    return tempFile.path;
-  } catch (error) {
-    throw Exception('Failed to download document: $error');
+    final Directory tempDir = await getTemporaryDirectory();
+    final File tempFile =
+        File('${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}');
+
+    try {
+      await storageReference.writeToFile(tempFile);
+      return tempFile.path;
+    } catch (error) {
+      throw Exception('Failed to download document: $error');
+    }
   }
-}
-
- 
 
   void downloadDocument(Document document) async {
-  if (document.url.isNotEmpty) {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.storage,
+      //add more permission to request here.
+    ].request();
+
     try {
-      // Get temporary directory path
-      Directory tempDir = await getTemporaryDirectory();
+      var dir = (await DownloadsPath.downloadsDirectory())?.path ??
+          "Downloads path doesn't exist";
+      if (dir != null) {
+        String savename = document.name + "." + document.type;
+        String savePath = dir + "/$savename";
+        print(savePath);
+        //output:  /storage/emulated/0/Download/banner.png
 
-      String tempPath = tempDir.path;
-      // Set file name and path
-      String fileName = document.name;
-      String filePath = '$tempPath/$fileName';
-      // Download document from Firebase Storage
-      final storageReference = FirebaseStorage.instance
-          .ref()
-          .child(document.url);
-      final downloadTask = storageReference.writeToFile(File(filePath));
-
-      final TaskSnapshot taskSnapshot = await downloadTask;
-      if (taskSnapshot.state == TaskState.success) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Success'),
-              content: const Text('Document downloaded successfully.'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content: const Text('Failed to download the document.'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-        print('Failed to download document: ${taskSnapshot.ref}');
-      }
-    } catch (error) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Failed to download the document.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+        try {
+          await Dio().download(document.url, savePath,
+              onReceiveProgress: (received, total) {
+            if (total != -1) {
+              print((received / total * 100).toStringAsFixed(0) + "%");
+              //you can build progressbar feature too
+            }
+          });
+          print("File is saved to download folder.");
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('File Download'),
+                content: const Text('File downloaded successfully.'),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('OK'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
           );
-        },
-      );
-      print('Failed to download document: $error');
+          // showAlertDialog(BuildContext context) {
+          //   // set up the button
+          //   Widget okButton = ElevatedButton(
+          //     child: Text("OK"),
+          //     onPressed: () {},
+          //   );
+          //   // set up the AlertDialog
+          //   AlertDialog alert = AlertDialog(
+          //     title: Text("File Download"),
+          //     content: Text("Your file has been downloaded on downloads directory."),
+          //     actions: [
+          //       okButton,
+          //     ],
+          //   );
+          //   // show the dialog
+          //   showDialog(
+          //     context: context,
+          //     builder: (BuildContext context) {
+          //       return alert;
+          //     },
+          //   );
+          // }
+        } on DioError catch (e) {
+          print(e.message);
+          print('download error');
+        }
+      }
+    } catch (e) {
+      print("No permission to read and write.");
     }
-  } else {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: const Text(
-            'Cannot download a document that is not uploaded to the cloud.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
-}
-
 
   void deleteDocument(Document document) {
     showDialog(
@@ -554,8 +522,6 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  
-
   Image getDocumentImage(String type) {
     switch (type) {
       case 'doc':
@@ -577,26 +543,27 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppUtils.sizedBox(80.0, 0.0),
-              AppUtils.searchTextField(
-                textInputAction: TextInputAction.done,
-                controller: search,
-                widget: Image.asset('assets/IconButton.png'), onChanged: (query) {  },
-              ),
-              AppUtils.sizedBox(20.0, 0.0),
-              AppUtils.simpleText(
-                text: "All Documents",
-                style: const TextStyle(
-                    fontSize: 28,
-                    color: AppColors.blackColor,
-                    fontWeight: FontWeight.bold),
-              ),
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppUtils.sizedBox(80.0, 0.0),
+            AppUtils.searchTextField(
+              textInputAction: TextInputAction.done,
+              controller: search,
+              widget: Image.asset('assets/IconButton.png'),
+              onChanged: (query) {},
+            ),
+            AppUtils.sizedBox(20.0, 0.0),
+            AppUtils.simpleText(
+              text: "All Documents",
+              style: const TextStyle(
+                  fontSize: 28,
+                  color: AppColors.blackColor,
+                  fontWeight: FontWeight.bold),
+            ),
             AppUtils.sizedBox(20.0, 0.0),
             Flexible(
               child: ListView.separated(
@@ -609,13 +576,14 @@ class _DashboardPageState extends State<DashboardPage> {
                         isCheckTile = null;
                       });
                     },
-                    visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
+                    visualDensity:
+                        const VisualDensity(horizontal: 0, vertical: -2),
                     tileColor: isCheckTile == index
                         ? Colors.black.withOpacity(0.4)
                         : Colors.grey[300],
                     minVerticalPadding: 0.0,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 0.0, vertical: 0.0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -659,7 +627,8 @@ class _DashboardPageState extends State<DashboardPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.blue),
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.blue),
                                   onPressed: () {
                                     // Call the deleteDocument function here
                                     deleteDocument(document);
@@ -667,7 +636,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                                 const SizedBox(width: 0.0, height: 6.0),
                                 IconButton(
-                                  icon: const Icon(Icons.download, color: Colors.blue),
+                                  icon: const Icon(Icons.download,
+                                      color: Colors.blue),
                                   onPressed: () {
                                     // Call the downloadDocument function here
                                     downloadDocument(document);
@@ -675,7 +645,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                                 const SizedBox(width: 0.0, height: 6.0),
                                 IconButton(
-                                  icon: const Icon(Icons.share, color: Colors.blue),
+                                  icon: const Icon(Icons.share,
+                                      color: Colors.blue),
                                   onPressed: () {
                                     // Call the shareDocument function here
                                     shareDocument(document);
@@ -683,18 +654,19 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                                 const SizedBox(width: 0.0, height: 8.0),
                                 IconButton(
-                                  icon: const Icon(Icons.star_border, color: Colors.blue),
+                                  icon: const Icon(Icons.star_border,
+                                      color: Colors.blue),
                                   onPressed: () {
                                     // Call the favoriteDocument function here
                                     favoriteDocument(document);
                                   },
                                 ),
                                 const SizedBox(width: 0.0, height: 8.0),
-
                               ],
                             )
                           : Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
                               child: Image.asset('assets/three_dot.png'),
                             ),
                     ),

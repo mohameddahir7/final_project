@@ -153,14 +153,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
-  dart_pptx:
+  dio:
     dependency: "direct main"
     description:
-      name: dart_pptx
-      sha256: "6d5b8012c9aeb97711e87f615bc283d792843c80ff67a405d40a2c827762fbbc"
+      name: dio
+      sha256: ce75a1b40947fea0a0e16ce73337122a86762e38b982e1ccb909daa3b9bc4197
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.2+1"
+    version: "5.3.2"
   document_file_save_plus:
     dependency: "direct main"
     description:
@@ -201,14 +201,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
-  file:
-    dependency: transitive
-    description:
-      name: file
-      sha256: "1b92bec4fc2a72f59a8e15af5f52cd441e4a7860b49499d69dfa817af20e925d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.4"
   file_picker:
     dependency: "direct main"
     description:
@@ -326,6 +318,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_downloader:
+    dependency: "direct main"
+    description:
+      name: flutter_downloader
+      sha256: "2b126083d2e6b7c09755bca12012c4c734bcf7666cf07ba00c508fcb83e8d0d7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.11.1"
   flutter_facebook_auth:
     dependency: "direct main"
     description:
@@ -600,16 +600,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.0+2"
-  hashcodes:
-    dependency: transitive
-    description:
-      name: hashcodes
-      sha256: "80f9410a5b3c8e110c4b7604546034749259f5d6dcca63e0d3c17c9258f1a651"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
@@ -720,14 +712,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.1"
-  image_size_getter:
-    dependency: transitive
-    description:
-      name: image_size_getter
-      sha256: "75befb508dd28845d4b276654a8420be3d7458b8424e943ee84bbfe7c2c052e0"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.2"
   intl:
     dependency: transitive
     description:
@@ -752,14 +736,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.7"
-  json_annotation:
-    dependency: transitive
-    description:
-      name: json_annotation
-      sha256: b10a7b2ff83d83c777edba3c6a0f97045ddadd56c944e1a23a3fdf43a1bf4467
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.8.1"
   lecle_downloads_path_provider:
     dependency: "direct main"
     description:
@@ -808,14 +784,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  mustache_template:
-    dependency: transitive
-    description:
-      name: mustache_template
-      sha256: a46e26f91445bfb0b60519be280555b06792460b27b19e2b19ad5b9740df5d1c
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
   open_file:
     dependency: "direct main"
     description:
@@ -1032,14 +1000,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.1"
-  recase:
-    dependency: transitive
+  rflutter_alert:
+    dependency: "direct main"
     description:
-      name: recase
-      sha256: e4eb4ec2dcdee52dcf99cb4ceabaffc631d7424ee55e56f280bc039737f89213
+      name: rflutter_alert
+      sha256: "8ff35e3f9712ba24c746499cfa95bf320385edf38901a1a4eab0fe555867f66c"
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.0"
+    version: "2.0.7"
   share:
     dependency: "direct main"
     description:

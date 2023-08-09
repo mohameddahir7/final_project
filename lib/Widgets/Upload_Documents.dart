@@ -210,19 +210,7 @@ Future<void> uploadDocument(BuildContext context) async {
         TaskSnapshot taskSnapshot = await uploadTask;
         String downloadUrl = await taskSnapshot.ref.getDownloadURL();
 
-        // Store document info in Firestore
-        await FirebaseFirestore.instance
-            .collection('documents')
-            .doc(user.uid)
-            .collection('files')
-            .doc(file.name)
-            .set({
-          'name': file.name,
-          'type': extension,
-          'url': downloadUrl,
-        });
-
-        showDialog(
+showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
@@ -239,7 +227,19 @@ Future<void> uploadDocument(BuildContext context) async {
             );
           },
         );
+        // Store document info in Firestore
+        await FirebaseFirestore.instance
+            .collection('documents')
+            .doc(user.uid)
+            .collection('files')
+            .doc(file.name)
+            .set({
+          'name': file.name,
+          'type': extension,
+          'url': downloadUrl,
+        });
         print('File uploaded successfully');
+        
       } catch (error) {
         print('Failed to upload document: $error');
         showDialog(
